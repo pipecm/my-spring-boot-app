@@ -7,29 +7,40 @@ pipeline {
     }
 
     stages {
+        stage('Cloning') {
+            steps {
+                git branch: "main", url: 'https://github.com/pipecm/my-spring-boot-app.git'
+            }
+        }
+
+        stage('Analysis') {
+            steps {
+                withSonarQubeEnv('sq-docker'){
+                    sh "echo 'Starting SonarQube analysis'"
+                    sh "mvn sonar:sonar -Dsonar.projectKey=my-sb-app -Dsonar.projectName='my-sb-app' -Dsonar.host.url=http://pipecm-vm:9000 -Dsonar.token=sqp_759a9a5d7d3fa627aaf381d1ef568dd64b3636a6"
+                    sh "echo 'Analysis finished successfully'"
+                }
+            }
+        }
+
         stage('Build') {
             steps {
-                // Get some code from a GitHub repository
-                git branch: "main", url: 'https://github.com/pipecm/my-spring-boot-app.git'
-
-                // Run Maven on a Unix agent.
+                sh "echo 'Starting build'"
                 sh "mvn -Dmaven.test.failure.ignore=true clean package"
-
-                // To run Maven on a Windows agent, use
-                // bat "mvn -Dmaven.test.failure.ignore=true clean package"
             }
 
             post {
                 // If Maven was able to run the tests, even if some of the test
                 // failed, record the test results and archive the jar file.
                 success {
+                    sh "echo 'Build success'"
                     junit '**/target/surefire-reports/TEST-*.xml'
                     archiveArtifacts 'target/*.jar'
                 }
             }
         }
 
-        stage('Run') {
+        stage('Finish') {
             steps {
                 sh "echo 'Deployment finished successfully'"
             }
