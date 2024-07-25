@@ -2,7 +2,6 @@ pipeline {
     agent any
 
     tools {
-        // Install the Maven version configured as "M3" and add it to the path.
         maven "default"
     }
 
@@ -17,7 +16,7 @@ pipeline {
             steps {
                 withSonarQubeEnv('sq-docker'){
                     sh "echo 'Starting SonarQube analysis'"
-                    sh "mvn sonar:sonar -Dsonar.projectKey=my-sb-app -Dsonar.projectName='my-sb-app' -Dsonar.host.url=http://pipecm-vm:9000 -Dsonar.token=sqp_759a9a5d7d3fa627aaf381d1ef568dd64b3636a6"
+                    sh "mvn clean verify sonar:sonar -Dsonar.projectKey=my-spring-boot-app -Dsonar.projectName='my-spring-boot-app' -Dsonar.host.url=http://sonarqube-server:9000 -Dsonar.token=sqp_546501c47be566a813654533733329dcc78a82eb"
                     sh "echo 'Analysis finished successfully'"
                 }
             }
@@ -30,8 +29,6 @@ pipeline {
             }
 
             post {
-                // If Maven was able to run the tests, even if some of the test
-                // failed, record the test results and archive the jar file.
                 success {
                     sh "echo 'Build success'"
                     junit '**/target/surefire-reports/TEST-*.xml'
